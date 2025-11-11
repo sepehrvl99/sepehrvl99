@@ -19,7 +19,7 @@ def _get_required_env(name: str) -> str:
     return value
 
 
-TOKEN = _get_required_env("BOT_TOKEN")
+TOKEN = _get_required_env("7376006440:AAHCeJK5zvUMsVIbFfi6avZ0diVMzCphaJg")
 
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
