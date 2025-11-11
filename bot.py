@@ -1,7 +1,7 @@
 import asyncio
 import os
 from typing import Iterable
-
+from keep_alive import keep_alive
 from aiogram import Bot, Dispatcher
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -11,6 +11,8 @@ from aiogram.types import Message
 
 import storage
 import logging
+
+keep_alive()
 
 def _get_required_env(name: str) -> str:
     value = os.getenv(name)
