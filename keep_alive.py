@@ -10,6 +10,4 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-in the main py file add:
-from keep_alive import keep_alive
-keep_alive()
+
