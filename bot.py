@@ -118,6 +118,7 @@ async def monitor(message: Message):
 
 
 async def main():
+    logging.basicConfig(level=logging.INFO)
     await dp.start_polling(bot)
 
 
