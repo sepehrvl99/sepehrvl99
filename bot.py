@@ -1,8 +1,6 @@
 import asyncio
-import logging
 import os
-from html import escape
-from typing import Iterable, Sequence
+from typing import Iterable
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.bot import DefaultBotProperties
@@ -10,7 +8,6 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message
-from aiogram.exceptions import TelegramAPIError
 
 import storage
 
@@ -22,20 +19,15 @@ def _get_required_env(name: str) -> str:
     return value
 
 
-TOKEN = _get_required_env("BOT_TOKEN")
+TOKEN = _get_required_env("7376006440:AAHCeJK5zvUMsVIbFfi6avZ0diVMzCphaJg")
 
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 
-logger = logging.getLogger(__name__)
-
 
 async def _notify_users(users: Iterable[int], text: str) -> None:
     for user_id in users:
-        try:
-            await bot.send_message(user_id, text)
-        except TelegramAPIError as exc:
-            logger.warning("Failed to notify user %s: %s", user_id, exc)
+        await bot.send_message(user_id, text)
 
 
 @dp.message(CommandStart())
@@ -46,11 +38,6 @@ async def cmd_start(message: Message):
         await message.answer("ثبت نام انجام شد. اطلاعیه‌ها اینجا ارسال می‌شود.")
     else:
         await message.answer("پیش‌تر ثبت‌نام کرده‌اید و اطلاعیه‌ها به اینجا ارسال می‌شود.")
-
-
-@dp.message(Command(commands=["register"]))
-async def cmd_register(message: Message):
-    await cmd_start(message)
 
 
 @dp.message(Command(commands=["addgroup"]))
@@ -102,25 +89,8 @@ async def list_items(message: Message):
 
 
 def _extract_keywords(text: str) -> list[str]:
-    lowered = text.casefold()
-    return [kw for kw in storage.get_keywords() if kw.casefold() in lowered]
-
-
-def _get_message_content(message: Message) -> str | None:
-    return message.text or message.caption
-
-
-def _format_notification(message: Message, keywords: Sequence[str], content: str) -> str:
-    chat_label = message.chat.title or message.chat.full_name or str(message.chat.id)
-    escaped_keywords = ", ".join(escape(kw) for kw in keywords)
-    escaped_chat = escape(chat_label)
-    sender = message.from_user.full_name if message.from_user else "کاربر ناشناس"
-    escaped_sender = escape(sender)
-    escaped_content = escape(content)
-    return (
-        f"کلیدواژه‌های [{escaped_keywords}] در گفتگو «{escaped_chat}» یافت شد:\n"
-        f"{escaped_sender}: {escaped_content}"
-    )
+    lowered = text.lower()
+    return [kw for kw in storage.get_keywords() if kw.lower() in lowered]
 
 
 async def _handle_matches(notify_text: str) -> None:
@@ -129,19 +99,21 @@ async def _handle_matches(notify_text: str) -> None:
 
 @dp.message()
 async def monitor(message: Message):
-    content = _get_message_content(message)
-    if not content:
+    if not message.text:
         return
 
     chat_id = message.chat.id
     if chat_id not in storage.get_groups():
         return
 
-    found = _extract_keywords(content)
+    found = _extract_keywords(message.text)
     if not found:
         return
 
-    notify_text = _format_notification(message, found, content)
+    notify_text = (
+        f"کلیدواژه‌های {found} در گروه {chat_id} یافت شد:\n"
+        f"{message.from_user.full_name}: {message.text}"
+    )
     await _handle_matches(notify_text)
 
 
