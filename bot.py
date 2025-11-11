@@ -10,7 +10,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message
 
 import storage
-
+import logging
 
 def _get_required_env(name: str) -> str:
     value = os.getenv(name)
